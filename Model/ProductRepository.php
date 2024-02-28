@@ -1,9 +1,5 @@
 <?php
 
-namespace Model;
-
-use PDO;
-
 class ProductRepository
 {
 
@@ -13,25 +9,25 @@ class ProductRepository
     {
 
         $this->productRepository = new PDO(
-            'mysql:host=localhost;dbname=examenpdo',
-            'root',
-            ""
+            'mysql:host=localhost;dbname=theoPDO',
+            'gab',
+            "motdepasse"
         );
     }
 
     public function save(Product $product):void{
 
         // If product update If no product save
-        if(array_key_exists('id', $product)){
-            $productId = $fetchProduct['id'];
+        if($product->id !== NULL){
+            $productId = $product->id;
             $query = $this->productRepository->prepare("
                 UPDATE products
-                SET name = \":name\", description = \":description\", price = \":price\"
-                WHERE id = $productId");
-        }else{
+                SET name = :name, description = :description, price = :price
+                WHERE id = $productId
+            ");
+        } else {
 
             $query = $this->productRepository->prepare("
-             
              INSERT INTO products (name, description, price)
              VALUES (:name, :description, :price)
             ");
@@ -55,8 +51,9 @@ class ProductRepository
         $query = $this->productRepository->prepare("SELECT * FROM products");
         $query->execute();
 
+        $data = $query->fetchAll(PDO::FETCH_ASSOC);
         // Fetch assoc pour n'avoir que les association et pas les index de col
-        return array_map(call_user_func(array($this, 'transformRawDataToProduct')), $query->fetchAll(PDO::FETCH_ASSOC));
+        return array_map(array($this, 'transformRawDataToProduct'), $data);
     }
 
     public function getById(int $id): Product{
